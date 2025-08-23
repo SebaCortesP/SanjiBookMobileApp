@@ -31,10 +31,10 @@ fun LoginScreen(navController: NavController) {
     // Usuarios permitidos (maqueta)
     val allowedUsers = listOf(
         "user1@mail.com" to "123456",
-        "user2@mail.com" to "abcdef",
-        "user3@mail.com" to "password",
-        "user4@mail.com" to "qwerty",
-        "user5@mail.com" to "demo123"
+        "user2@mail.com" to "123456",
+        "user3@mail.com" to "123456",
+        "user4@mail.com" to "123456",
+        "user5@mail.com" to "123456"
     )
 
     Scaffold { paddingValues ->
