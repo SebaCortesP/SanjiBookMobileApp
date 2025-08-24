@@ -13,6 +13,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.duocuc.sanjibookapp.R
 import java.util.regex.Pattern
@@ -56,13 +57,23 @@ fun LoginScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Iniciar Sesión",
-                style = MaterialTheme.typography.headlineSmall,
+                text = "Bienvenido al Libro de Sanji",
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontSize = 28.sp
+                ),
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
+            Text(
+                text = "Inicie sesión para continuar",
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontSize = 20.sp
+                ),
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(24.dp))
             // Email
             OutlinedTextField(
                 value = email,
@@ -78,7 +89,7 @@ fun LoginScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth()
             )
             if (emailError != null) {
-                Text(emailError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                Text(emailError!!, color = MaterialTheme.colorScheme.error, fontSize = 18.sp)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -99,7 +110,7 @@ fun LoginScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth()
             )
             if (passwordError != null) {
-                Text(passwordError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                Text(passwordError!!, color = MaterialTheme.colorScheme.error, fontSize = 18.sp)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -140,7 +151,7 @@ fun LoginScreen(navController: NavController) {
                     contentColor = Color.White
                 )
             ) {
-                Text("Iniciar Sesión")
+                Text("Iniciar Sesión", fontSize = 18.sp,)
             }
 
             // Error de login
@@ -158,7 +169,7 @@ fun LoginScreen(navController: NavController) {
                     contentColor = azulSanji
                 )
             ) {
-                Text("¿Olvidaste tu contraseña?")
+                Text("¿Olvidaste tu contraseña?", fontSize = 18.sp,)
             }
 
             TextButton(
@@ -167,7 +178,7 @@ fun LoginScreen(navController: NavController) {
                     contentColor = azulSanji
                 )
             ) {
-                Text("Crear cuenta")
+                Text("Crear cuenta", fontSize = 18.sp)
             }
         }
     }

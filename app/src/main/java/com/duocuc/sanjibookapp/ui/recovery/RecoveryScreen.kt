@@ -7,7 +7,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,6 +32,14 @@ fun RecoveryScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            Text(
+                text = "Ingrese su email para continuar con la recuperación",
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontSize = 20.sp
+                ),
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(12.dp))
             // Input Email
             OutlinedTextField(
                 value = email,
@@ -40,31 +50,9 @@ fun RecoveryScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Input Nueva contraseña
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Nueva contraseña") },
-                modifier = Modifier.fillMaxWidth(),
-                visualTransformation = PasswordVisualTransformation()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Input Confirmar contraseña
-            OutlinedTextField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
-                label = { Text("Repite la contraseña") },
-                modifier = Modifier.fillMaxWidth(),
-                visualTransformation = PasswordVisualTransformation()
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
             // Mostrar errores
             if (errorMessage.isNotEmpty()) {
-                Text(errorMessage, color = MaterialTheme.colorScheme.error)
+                Text(errorMessage, color = MaterialTheme.colorScheme.error, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
@@ -84,14 +72,14 @@ fun RecoveryScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = azulApp)
             ) {
-                Text("Confirmar", color = Color.White)
+                Text("Confirmar", color = Color.White, fontSize = 18.sp)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
             // Botón Volver
             TextButton(onClick = { navController.popBackStack() }) {
-                Text("Volver", color = azulApp)
+                Text("Volver", color = azulApp, fontSize = 18.sp)
             }
         }
     }

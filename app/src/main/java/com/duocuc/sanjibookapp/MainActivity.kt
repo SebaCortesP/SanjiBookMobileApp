@@ -38,23 +38,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        /*
-        setContent {
-            SanjibookappTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    val navController = rememberNavController()
-                    NavHost(
-                        navController = navController,
-                        startDestination = "login"
-                    ) {
-                        composable("login") { LoginScreen(navController) }
-                        composable("register") { RegisterScreen(navController) }
-                        composable("recovery") { RecoveryScreen(navController) }
-                        composable("home") { HomeScreen(navController) }
-                    }
-                }
-            }
-        } */
         setContent {
             SanjibookappTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {

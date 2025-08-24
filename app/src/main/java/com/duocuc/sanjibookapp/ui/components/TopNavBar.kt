@@ -12,7 +12,9 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.ui.res.painterResource
 import com.duocuc.sanjibookapp.R
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,7 +34,10 @@ fun TopNavBar(
                 Text(
                     text = title,
                     color = titleColor,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontSize = 22.sp
+                    ),
                 )
             }
         },

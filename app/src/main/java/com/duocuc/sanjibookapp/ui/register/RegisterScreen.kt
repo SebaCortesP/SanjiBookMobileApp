@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -210,7 +211,7 @@ fun RegisterScreen(navController: NavController) {
                     onCheckedChange = { newsletterChecked = it }
                 )
                 Spacer(Modifier.width(8.dp))
-                Text("Recibir newsletter")
+                Text("Recibir newsletter", fontSize = 18.sp)
             }
 
             Spacer(Modifier.height(8.dp))
@@ -221,7 +222,7 @@ fun RegisterScreen(navController: NavController) {
                     onCheckedChange = { terminosChecked = it; terminosError = null }
                 )
                 Spacer(Modifier.width(8.dp))
-                Text("Acepto términos y condiciones")
+                Text("Acepto términos y condiciones", fontSize = 18.sp)
             }
             if (terminosError != null) Text(terminosError!!, color = MaterialTheme.colorScheme.error)
 
@@ -271,10 +272,6 @@ fun RegisterScreen(navController: NavController) {
                         showErrorDialog = true
                     } else {
                         showSuccessDialog = true
-                        /*
-                        navController.navigate("home") {
-                            popUpTo("register") { inclusive = true }
-                        }*/
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -321,7 +318,7 @@ fun RegisterScreen(navController: NavController) {
 
             // Enlace a login
             TextButton(onClick = { navController.popBackStack() }) {
-                Text("Ya tengo cuenta, iniciar sesión", color = azulApp)
+                Text("Ya tengo cuenta, iniciar sesión", color = azulApp, fontSize = 18.sp)
             }
         }
     }
