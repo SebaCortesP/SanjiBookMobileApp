@@ -16,7 +16,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.duocuc.sanjibookapp.R
-import java.util.regex.Pattern
+import com.duocuc.sanjibookapp.models.Session
+import com.duocuc.sanjibookapp.models.User
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,15 +30,6 @@ fun LoginScreen(navController: NavController) {
 
     val azulSanji = Color(0xFF243B94)
 
-    // Usuarios permitidos (maqueta)
-    val allowedUsers = listOf(
-        "user1@mail.com" to "123456",
-        "user2@mail.com" to "123456",
-        "user3@mail.com" to "123456",
-        "user4@mail.com" to "123456",
-        "user5@mail.com" to "123456"
-    )
-
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
@@ -47,32 +39,11 @@ fun LoginScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Logo
-            Image(
-                painter = painterResource(id = R.drawable.logo_sanji),
-                contentDescription = "Logo App",
-                modifier = Modifier.size(150.dp)
-            )
-
+            Image( painter = painterResource(id = R.drawable.logo_sanji), contentDescription = "Logo App", modifier = Modifier.size(150.dp) )
             Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Bienvenido al Libro de Sanji",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontSize = 28.sp
-                ),
-                textAlign = TextAlign.Center
-            )
-
+            Text( text = "Bienvenido al Libro de Sanji", style = MaterialTheme.typography.headlineSmall.copy( fontSize = 28.sp ), textAlign = TextAlign.Center )
             Spacer(modifier = Modifier.height(18.dp))
-
-            Text(
-                text = "Inicie sesión para continuar",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontSize = 20.sp
-                ),
-                textAlign = TextAlign.Center
-            )
+            Text( text = "Inicie sesión para continuar", style = MaterialTheme.typography.headlineSmall.copy( fontSize = 20.sp ), textAlign = TextAlign.Center )
             Spacer(modifier = Modifier.height(24.dp))
             // Email
             OutlinedTextField(
@@ -89,7 +60,11 @@ fun LoginScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth()
             )
             if (emailError != null) {
-                Text(emailError!!, color = MaterialTheme.colorScheme.error, fontSize = 18.sp)
+                Text(
+                    emailError!!,
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 18.sp
+                )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -110,38 +85,29 @@ fun LoginScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth()
             )
             if (passwordError != null) {
-                Text(passwordError!!, color = MaterialTheme.colorScheme.error, fontSize = 18.sp)
+                Text(
+                    passwordError!!,
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 18.sp
+                )
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
             // Botón de Login
             Button(
                 onClick = {
-                    var valid = true
+                    val user = User(email, password)
 
-                    if (email.isBlank()) {
-                        emailError = "El email es obligatorio"
-                        valid = false
-                    } else if (!isValidEmail(email)) {
-                        emailError = "Formato de email inválido"
-                        valid = false
-                    }
+                    val errors = user.validate()
+                    emailError = errors["email"]
+                    passwordError = errors["password"]
 
-                    if (password.isBlank()) {
-                        passwordError = "La contraseña es obligatoria"
-                        valid = false
-                    }
-
-                    if (valid) {
-                        val userExists = allowedUsers.any { it.first == email && it.second == password }
-                        if (userExists) {
-                            // Login exitoso
+                    if (errors.isEmpty()) {
+                        if (user.authenticate()) {
+                            Session.currentUser = user
                             navController.navigate("home") {
                                 popUpTo("login") { inclusive = true }
                             }
                         } else {
-                            loginError = "Credenciales incorrectas"
+                            loginError = User.lastError
                         }
                     }
                 },
@@ -151,40 +117,20 @@ fun LoginScreen(navController: NavController) {
                     contentColor = Color.White
                 )
             ) {
-                Text("Iniciar Sesión", fontSize = 18.sp,)
+                Text("Iniciar Sesión", fontSize = 18.sp)
             }
 
-            // Error de login
-            loginError?.let {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Botones de texto (links)
-            TextButton(
-                onClick = { navController.navigate("recovery") },
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = azulSanji
+            if (loginError != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = loginError!!,
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 18.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
-            ) {
-                Text("¿Olvidaste tu contraseña?", fontSize = 18.sp,)
-            }
-
-            TextButton(
-                onClick = { navController.navigate("register") },
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = azulSanji
-                )
-            ) {
-                Text("Crear cuenta", fontSize = 18.sp)
             }
         }
     }
 }
 
-fun isValidEmail(email: String): Boolean {
-    val emailPattern = Pattern.compile("[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+")
-    return emailPattern.matcher(email).matches()
-}

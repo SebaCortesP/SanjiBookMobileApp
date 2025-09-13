@@ -19,6 +19,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.duocuc.sanjibookapp.models.User
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -231,47 +232,40 @@ fun RegisterScreen(navController: NavController) {
             //  Botón Registrarse 
             Button(
                 onClick = {
-                    var valid = true
+                    val user = User(
+                        email = email,
+                        password = password,
+                        repetirPassword = repetirPassword,
+                        nombre = nombre,
+                        apellido = apellido,
+                        fechaNacimiento = fechaNacimiento,
+                        sexo = sexoSelected,
+                        terminosAceptados = terminosChecked
+                    )
 
-                    // Reglas básicas
-                    if (nombre.isBlank()) { nombreError = "Obligatorio"; valid = false }
-                    if (apellido.isBlank()) { apellidoError = "Obligatorio"; valid = false }
-                    if (email.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                        emailError = "Email inválido"; valid = false
-                    }
-                    if (password.isBlank() || repetirPassword.isBlank()) {
-                        passwordError = "Ambas contraseñas son obligatorias"; valid = false
-                    } else if (password != repetirPassword) {
-                        passwordError = "Las contraseñas no coinciden"; valid = false
-                    }
-                    if (fechaNacimiento.isBlank()) { fechaError = "Obligatorio"; valid = false }
-                    else {
-                        // Mayor de 18 años
-                        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
-                            isLenient = false
-                        }
-                        val cal = Calendar.getInstance()
-                        try {
-                            val dob = sdf.parse(fechaNacimiento)
-                            if (dob == null) {
-                                fechaError = "Fecha inválida"; valid = false
-                            } else {
-                                val limite = Calendar.getInstance().apply { add(Calendar.YEAR, -18) }
-                                if (!dob.before(limite.time)) {
-                                    fechaError = "Debes ser mayor de 18 años"; valid = false
-                                }
-                            }
-                        } catch (e: ParseException) {
-                            fechaError = "Fecha inválida"; valid = false
-                        }
-                    }
-                    if (sexoSelected.isBlank()) { sexoError = "Obligatorio"; valid = false }
-                    if (!terminosChecked) { terminosError = "Debes aceptar los términos"; valid = false }
+                    // Validación
+                    val errors = user.validateRegistration()
 
-                    if (!valid) {
-                        showErrorDialog = true
+                    // Asignar errores a los estados para mostrar en la UI
+                    nombreError = errors["nombre"]
+                    apellidoError = errors["apellido"]
+                    emailError = errors["email"]
+                    passwordError = errors["password"]
+                    fechaError = errors["fechaNacimiento"]
+                    sexoError = errors["sexo"]
+                    terminosError = errors["terminos"]
+
+                    if (errors.isEmpty()) {
+                        // Registro exitoso
+                        if (User.registerUser(user)) {
+                            showSuccessDialog = true
+                        } else {
+                            // Usuario ya existe
+                            var loginError = User.lastError
+                            showErrorDialog = true
+                        }
                     } else {
-                        showSuccessDialog = true
+                        showErrorDialog = true
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -295,8 +289,6 @@ fun RegisterScreen(navController: NavController) {
                     }
                 )
             }
-
-
 
             if (showSuccessDialog) {
                 AlertDialog(
