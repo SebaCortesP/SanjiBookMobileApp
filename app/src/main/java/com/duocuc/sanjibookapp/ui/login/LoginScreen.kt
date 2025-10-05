@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -16,8 +17,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.duocuc.sanjibookapp.R
+import com.duocuc.sanjibookapp.data.database.AppDatabase
 import com.duocuc.sanjibookapp.models.Session
 import com.duocuc.sanjibookapp.models.User
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,6 +34,7 @@ fun LoginScreen(navController: NavController) {
     var loginError by remember { mutableStateOf<String?>(null) }
 
     val azulSanji = Color(0xFF243B94)
+    val context = LocalContext.current // ⚡ Obtener Context dentro del Composable
 
     Scaffold { paddingValues ->
         Column(
@@ -39,12 +45,25 @@ fun LoginScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Image( painter = painterResource(id = R.drawable.logo_sanji), contentDescription = "Logo App", modifier = Modifier.size(150.dp) )
+            Image(
+                painter = painterResource(id = R.drawable.logo_sanji),
+                contentDescription = "Logo App",
+                modifier = Modifier.size(150.dp)
+            )
             Spacer(modifier = Modifier.height(16.dp))
-            Text( text = "Bienvenido al Libro de Sanji", style = MaterialTheme.typography.headlineSmall.copy( fontSize = 28.sp ), textAlign = TextAlign.Center )
+            Text(
+                text = "Bienvenido al Libro de Sanji",
+                style = MaterialTheme.typography.headlineSmall.copy(fontSize = 28.sp),
+                textAlign = TextAlign.Center
+            )
             Spacer(modifier = Modifier.height(18.dp))
-            Text( text = "Inicie sesión para continuar", style = MaterialTheme.typography.headlineSmall.copy( fontSize = 20.sp ), textAlign = TextAlign.Center )
+            Text(
+                text = "Inicie sesión para continuar",
+                style = MaterialTheme.typography.headlineSmall.copy(fontSize = 20.sp),
+                textAlign = TextAlign.Center
+            )
             Spacer(modifier = Modifier.height(24.dp))
+
             // Email
             OutlinedTextField(
                 value = email,
@@ -60,11 +79,7 @@ fun LoginScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth()
             )
             if (emailError != null) {
-                Text(
-                    emailError!!,
-                    color = MaterialTheme.colorScheme.error,
-                    fontSize = 18.sp
-                )
+                Text(emailError!!, color = MaterialTheme.colorScheme.error, fontSize = 18.sp)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -85,37 +100,46 @@ fun LoginScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth()
             )
             if (passwordError != null) {
-                Text(
-                    passwordError!!,
-                    color = MaterialTheme.colorScheme.error,
-                    fontSize = 18.sp
-                )
+                Text(passwordError!!, color = MaterialTheme.colorScheme.error, fontSize = 18.sp)
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Botón de Login
             Button(
                 onClick = {
-                    val user = User(email, password)
+                    // Validaciones locales
+                    val errors = mutableMapOf<String, String?>()
+                    if (email.isBlank()) errors["email"] = "El email es obligatorio"
+                    if (password.isBlank()) errors["password"] = "La contraseña es obligatoria"
 
-                    val errors = user.validate()
                     emailError = errors["email"]
                     passwordError = errors["password"]
 
                     if (errors.isEmpty()) {
-                        if (user.authenticate()) {
-                            Session.currentUser = user
-                            navController.navigate("home") {
-                                popUpTo("login") { inclusive = true }
+                        // Coroutine para acceder a Room
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val db = AppDatabase.getDatabase(context)
+                            val user = db.userDao().getUserByEmail(email)
+                            if (user != null && user.password == password) {
+                                Session.currentUser = user
+                                // Navegación en Main
+                                launch(Dispatchers.Main) {
+                                    navController.navigate("home") {
+                                        popUpTo("login") { inclusive = true }
+                                    }
+                                }
+                            } else {
+                                // Actualizar estado en Main
+                                launch(Dispatchers.Main) {
+                                    loginError = "Usuario o contraseña incorrectos"
+                                }
                             }
-                        } else {
-                            loginError = User.lastError
                         }
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = azulSanji,
-                    contentColor = Color.White
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = azulSanji, contentColor = Color.White)
             ) {
                 Text("Iniciar Sesión", fontSize = 18.sp)
             }
@@ -133,4 +157,3 @@ fun LoginScreen(navController: NavController) {
         }
     }
 }
-

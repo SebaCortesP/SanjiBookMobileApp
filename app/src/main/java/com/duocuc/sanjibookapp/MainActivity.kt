@@ -25,6 +25,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.duocuc.sanjibookapp.data.database.AppDatabase
 import com.duocuc.sanjibookapp.ui.components.TopNavBar
 import com.duocuc.sanjibookapp.ui.home.HomeScreen
 import com.duocuc.sanjibookapp.ui.login.LoginScreen
@@ -38,6 +39,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // --- Inicializar la base de datos para que se creen los datos de prueba ---
+        val db = AppDatabase.getDatabase(this)
+
         setContent {
             SanjibookappTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
@@ -93,6 +98,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 }
 
 @Composable

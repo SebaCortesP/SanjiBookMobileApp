@@ -1,32 +1,38 @@
 package com.duocuc.sanjibookapp.ui.home
 
-
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.duocuc.sanjibookapp.models.Recipe
 import com.duocuc.sanjibookapp.models.Session
 import com.duocuc.sanjibookapp.models.User
-import org.json.JSONArray
+import com.duocuc.sanjibookapp.viewmodel.RecipeViewModel
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
-    val currentUser = Session.currentUser ?: return // o mostrar un error si no hay user
-    var recipes by remember { mutableStateOf(Recipe.getAll()) }
+    val context = LocalContext.current
+    val currentUser = Session.currentUser ?: return
 
-    // Estados para dialogs
+    // Usamos el ViewModel con Room
+    val recipeViewModel: RecipeViewModel = viewModel(
+        factory = RecipeViewModelFactory(context)
+    )
+
+    // Escuchamos los cambios de la base de datos en tiempo real
+    val recipes by recipeViewModel.allRecipes.collectAsState(initial = emptyList())
+
     var showAddDialog by remember { mutableStateOf(false) }
-    var showEditDialog by remember { mutableStateOf<Pair<Boolean, Int>>(false to -1) }
+    var recipeToEdit by remember { mutableStateOf<Recipe?>(null) }
 
     val azulNavbar = Color(0xFF243B94)
 
@@ -44,7 +50,7 @@ fun HomeScreen(navController: NavController) {
                 .padding(16.dp)
         ) {
             LazyColumn {
-                itemsIndexed(recipes) { index, recipe ->
+                itemsIndexed(recipes) { _, recipe ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -54,15 +60,31 @@ fun HomeScreen(navController: NavController) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(recipe.name, style = MaterialTheme.typography.titleMedium)
                             Text("Categoría: ${recipe.category}")
-                            Text("Autor: ${recipe.owner.email}")
+                            Text("Autor ID: ${recipe.userId}")
                             Spacer(modifier = Modifier.height(4.dp))
                             Text("Ingredientes: ${recipe.ingredients.joinToString(", ")}")
                             Spacer(modifier = Modifier.height(4.dp))
                             Text("Preparación: ${recipe.preparation}")
                             Spacer(modifier = Modifier.height(8.dp))
-                            // Botón Editar
-                            Button(onClick = { showEditDialog = true to index }) {
-                                Text("Editar")
+
+                            // Solo mostrar botones si es dueño o administrador
+                            if (recipe.userId == currentUser.id || currentUser.roleId == 1) {
+                                Row {
+                                    Button(
+                                        onClick = { recipeToEdit = recipe },
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("Editar")
+                                    }
+                                    Spacer(Modifier.width(8.dp))
+                                    Button(
+                                        onClick = { recipeViewModel.delete(recipe) },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("Eliminar", color = Color.White)
+                                    }
+                                }
                             }
                         }
                     }
@@ -71,30 +93,23 @@ fun HomeScreen(navController: NavController) {
         }
     }
 
-    // --- Dialog Agregar Receta ---
-    if (showAddDialog) {
+    // --- Dialog Agregar o Editar Receta ---
+    if (showAddDialog || recipeToEdit != null) {
         RecipeDialog(
             user = currentUser,
-            onDismiss = { showAddDialog = false },
-            onSave = { newRecipe ->
-                Recipe.add(newRecipe)
-                recipes = Recipe.getAll()
-                showAddDialog = false
-            }
-        )
-    }
-
-    // --- Dialog Editar Receta ---
-    if (showEditDialog.first) {
-        val recipeToEdit = recipes[showEditDialog.second]
-        RecipeDialog(
             recipe = recipeToEdit,
-            user = currentUser,
-            onDismiss = { showEditDialog = false to -1 },
-            onSave = { updatedRecipe ->
-                Recipe.update(showEditDialog.second, updatedRecipe)
-                recipes = Recipe.getAll()
-                showEditDialog = false to -1
+            onDismiss = {
+                showAddDialog = false
+                recipeToEdit = null
+            },
+            onSave = { recipe ->
+                if (recipeToEdit != null) {
+                    recipeViewModel.update(recipe)
+                } else {
+                    recipeViewModel.insert(recipe)
+                }
+                showAddDialog = false
+                recipeToEdit = null
             }
         )
     }
@@ -109,7 +124,12 @@ fun RecipeDialog(
 ) {
     var name by remember { mutableStateOf(recipe?.name ?: "") }
     var category by remember { mutableStateOf(recipe?.category ?: "") }
-    var ingredientsText by remember { mutableStateOf(recipe?.ingredients?.joinToString(", ") ?: "") }
+
+    // Convertir lista de ingredientes a texto para editar
+    var ingredientsText by remember {
+        mutableStateOf(recipe?.ingredients?.joinToString(", ") ?: "")
+    }
+
     var preparation by remember { mutableStateOf(recipe?.preparation ?: "") }
 
     AlertDialog(
@@ -121,15 +141,30 @@ fun RecipeDialog(
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(value = category, onValueChange = { category = it }, label = { Text("Categoría") })
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(value = ingredientsText, onValueChange = { ingredientsText = it }, label = { Text("Ingredientes (separados por coma)") })
+                OutlinedTextField(
+                    value = ingredientsText,
+                    onValueChange = { ingredientsText = it },
+                    label = { Text("Ingredientes (separados por coma)") }
+                )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(value = preparation, onValueChange = { preparation = it }, label = { Text("Preparación") })
             }
         },
         confirmButton = {
             TextButton(onClick = {
-                val ingredients = ingredientsText.split(",").map { it.trim() }.filter { it.isNotEmpty() }
-                val newRecipe = Recipe(name, ingredients, preparation, category, user)
+                val ingredientsList = ingredientsText
+                    .split(",")
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+
+                val newRecipe = Recipe(
+                    id = recipe?.id ?: 0,
+                    name = name,
+                    category = category,
+                    ingredients = ingredientsList, // 👈 ahora sí es List<String>
+                    preparation = preparation,
+                    userId = user.id
+                )
                 onSave(newRecipe)
             }) {
                 Text("Guardar")
@@ -142,3 +177,4 @@ fun RecipeDialog(
         }
     )
 }
+

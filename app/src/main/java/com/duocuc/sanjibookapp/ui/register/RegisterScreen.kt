@@ -1,7 +1,6 @@
 package com.duocuc.sanjibookapp.ui.register
 
 import android.app.DatePickerDialog
-import android.util.Patterns
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -19,16 +18,20 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.duocuc.sanjibookapp.data.database.AppDatabase
 import com.duocuc.sanjibookapp.models.User
-import java.text.ParseException
-import java.text.SimpleDateFormat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.Calendar
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(navController: NavController) {
-    // ------- Estados de campos -------
+    val context = LocalContext.current
+    val azulApp = Color(0xFF243B94)
+
+    // Estados de campos
     var email by remember { mutableStateOf("") }
     var nombre by remember { mutableStateOf("") }
     var apellido by remember { mutableStateOf("") }
@@ -36,10 +39,9 @@ fun RegisterScreen(navController: NavController) {
     var repetirPassword by remember { mutableStateOf("") }
     var fechaNacimiento by remember { mutableStateOf("") }
     var sexoSelected by remember { mutableStateOf("") }
-    var newsletterChecked by remember { mutableStateOf(false) }
     var terminosChecked by remember { mutableStateOf(false) }
 
-    // ------- Estados de error -------
+    // Estados de error
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
     var nombreError by remember { mutableStateOf<String?>(null) }
@@ -47,15 +49,12 @@ fun RegisterScreen(navController: NavController) {
     var fechaError by remember { mutableStateOf<String?>(null) }
     var sexoError by remember { mutableStateOf<String?>(null) }
     var terminosError by remember { mutableStateOf<String?>(null) }
+    var generalError by remember { mutableStateOf<String?>(null) }
 
-    // ------- Otros estados -------
-    var showErrorDialog by remember { mutableStateOf(false) }
+    // Otros estados
     var showSuccessDialog by remember { mutableStateOf(false) }
     var sexoExpanded by remember { mutableStateOf(false) }
     val sexoOptions = listOf("Masculino", "Femenino", "Prefiero omitir")
-
-    val azulApp = Color(0xFF243B94)
-    val context = LocalContext.current
 
     Scaffold { paddingValues ->
         Column(
@@ -67,7 +66,7 @@ fun RegisterScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            //  Nombre 
+            // Nombre
             OutlinedTextField(
                 value = nombre,
                 onValueChange = { nombre = it; nombreError = null },
@@ -77,10 +76,9 @@ fun RegisterScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth()
             )
             if (nombreError != null) Text(nombreError!!, color = MaterialTheme.colorScheme.error)
-
             Spacer(Modifier.height(12.dp))
 
-            // Apellido 
+            // Apellido
             OutlinedTextField(
                 value = apellido,
                 onValueChange = { apellido = it; apellidoError = null },
@@ -90,10 +88,9 @@ fun RegisterScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth()
             )
             if (apellidoError != null) Text(apellidoError!!, color = MaterialTheme.colorScheme.error)
-
             Spacer(Modifier.height(12.dp))
 
-            //  Email 
+            // Email
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it; emailError = null },
@@ -104,10 +101,9 @@ fun RegisterScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth()
             )
             if (emailError != null) Text(emailError!!, color = MaterialTheme.colorScheme.error)
-
             Spacer(Modifier.height(12.dp))
 
-            //  Contraseña 
+            // Contraseña
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it; passwordError = null },
@@ -118,10 +114,9 @@ fun RegisterScreen(navController: NavController) {
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier.fillMaxWidth()
             )
-
             Spacer(Modifier.height(12.dp))
 
-            //  Repetir contraseña 
+            // Repetir contraseña
             OutlinedTextField(
                 value = repetirPassword,
                 onValueChange = { repetirPassword = it; passwordError = null },
@@ -133,10 +128,9 @@ fun RegisterScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth()
             )
             if (passwordError != null) Text(passwordError!!, color = MaterialTheme.colorScheme.error)
-
             Spacer(Modifier.height(12.dp))
 
-            //  Fecha de nacimiento (abre DatePicker al tocar) 
+            // Fecha de nacimiento
             OutlinedTextField(
                 value = fechaNacimiento,
                 onValueChange = {},
@@ -164,10 +158,9 @@ fun RegisterScreen(navController: NavController) {
                     }
             )
             if (fechaError != null) Text(fechaError!!, color = MaterialTheme.colorScheme.error)
-
             Spacer(Modifier.height(12.dp))
 
-            //  Sexo (dropdown) 
+            // Sexo
             ExposedDropdownMenuBox(
                 expanded = sexoExpanded,
                 onExpandedChange = { sexoExpanded = !sexoExpanded }
@@ -177,13 +170,9 @@ fun RegisterScreen(navController: NavController) {
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Sexo") },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = sexoExpanded)
-                    },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = sexoExpanded) },
                     isError = sexoError != null,
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth()
+                    modifier = Modifier.menuAnchor().fillMaxWidth()
                 )
                 ExposedDropdownMenu(
                     expanded = sexoExpanded,
@@ -202,21 +191,9 @@ fun RegisterScreen(navController: NavController) {
                 }
             }
             if (sexoError != null) Text(sexoError!!, color = MaterialTheme.colorScheme.error)
-
             Spacer(Modifier.height(12.dp))
 
-            //  Checkboxes 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(
-                    checked = newsletterChecked,
-                    onCheckedChange = { newsletterChecked = it }
-                )
-                Spacer(Modifier.width(8.dp))
-                Text("Recibir newsletter", fontSize = 18.sp)
-            }
-
-            Spacer(Modifier.height(8.dp))
-
+            // Términos
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(
                     checked = terminosChecked,
@@ -226,46 +203,51 @@ fun RegisterScreen(navController: NavController) {
                 Text("Acepto términos y condiciones", fontSize = 18.sp)
             }
             if (terminosError != null) Text(terminosError!!, color = MaterialTheme.colorScheme.error)
-
             Spacer(Modifier.height(24.dp))
 
-            //  Botón Registrarse 
+            // Botón Registrarse
             Button(
                 onClick = {
-                    val user = User(
-                        email = email,
-                        password = password,
-                        repetirPassword = repetirPassword,
-                        nombre = nombre,
-                        apellido = apellido,
-                        fechaNacimiento = fechaNacimiento,
-                        sexo = sexoSelected,
-                        terminosAceptados = terminosChecked
-                    )
+                    // Validación simple
+                    nombreError = if (nombre.isBlank()) "Obligatorio" else null
+                    apellidoError = if (apellido.isBlank()) "Obligatorio" else null
+                    emailError = if (email.isBlank()) "Obligatorio" else null
+                    passwordError = when {
+                        password.isBlank() || repetirPassword.isBlank() -> "Ambas contraseñas son obligatorias"
+                        password != repetirPassword -> "Las contraseñas no coinciden"
+                        else -> null
+                    }
+                    fechaError = if (fechaNacimiento.isBlank()) "Obligatorio" else null
+                    sexoError = if (sexoSelected.isBlank()) "Obligatorio" else null
+                    terminosError = if (!terminosChecked) "Debes aceptar los términos" else null
 
-                    // Validación
-                    val errors = user.validateRegistration()
+                    val hasError = listOf(
+                        nombreError, apellidoError, emailError,
+                        passwordError, fechaError, sexoError, terminosError
+                    ).any { it != null }
 
-                    // Asignar errores a los estados para mostrar en la UI
-                    nombreError = errors["nombre"]
-                    apellidoError = errors["apellido"]
-                    emailError = errors["email"]
-                    passwordError = errors["password"]
-                    fechaError = errors["fechaNacimiento"]
-                    sexoError = errors["sexo"]
-                    terminosError = errors["terminos"]
-
-                    if (errors.isEmpty()) {
-                        // Registro exitoso
-                        if (User.registerUser(user)) {
-                            showSuccessDialog = true
-                        } else {
-                            // Usuario ya existe
-                            var loginError = User.lastError
-                            showErrorDialog = true
+                    if (!hasError) {
+                        // Registrar usuario en DB
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val db = AppDatabase.getDatabase(context)
+                            val existingUser = db.userDao().getUserByEmail(email)
+                            if (existingUser == null) {
+                                val newUser = User(
+                                    email = email,
+                                    password = password,
+                                    nombre = nombre,
+                                    apellido = apellido,
+                                    fechaNacimiento = fechaNacimiento,
+                                    sexo = sexoSelected,
+                                    terminosAceptados = terminosChecked,
+                                    roleId = 3
+                                )
+                                db.userDao().insert(newUser)
+                                showSuccessDialog = true
+                            } else {
+                                generalError = "El usuario ya existe"
+                            }
                         }
-                    } else {
-                        showErrorDialog = true
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -276,25 +258,12 @@ fun RegisterScreen(navController: NavController) {
 
             Spacer(Modifier.height(12.dp))
 
-            //  Dialog de errores 
-            if (showErrorDialog) {
-                AlertDialog(
-                    onDismissRequest = { showErrorDialog = false },
-                    title = { Text("Errores en el formulario") },
-                    text = { Text("Corrige los campos en rojo antes de continuar.") },
-                    confirmButton = {
-                        TextButton(onClick = { showErrorDialog = false }) {
-                            Text("OK")
-                        }
-                    }
-                )
-            }
-
+            // Dialog de éxito
             if (showSuccessDialog) {
                 AlertDialog(
                     onDismissRequest = { showSuccessDialog = false },
                     title = { Text("Registro exitoso") },
-                    text = { Text("Se ha enviado un email con un link para finalizar con su registro.") },
+                    text = { Text("Usuario registrado correctamente.") },
                     confirmButton = {
                         TextButton(onClick = {
                             showSuccessDialog = false
@@ -308,11 +277,24 @@ fun RegisterScreen(navController: NavController) {
                 )
             }
 
+            // Dialog de error
+            if (generalError != null) {
+                AlertDialog(
+                    onDismissRequest = { generalError = null },
+                    title = { Text("Error") },
+                    text = { Text(generalError!!) },
+                    confirmButton = {
+                        TextButton(onClick = { generalError = null }) {
+                            Text("OK")
+                        }
+                    }
+                )
+            }
+
             // Enlace a login
             TextButton(onClick = { navController.popBackStack() }) {
                 Text("Ya tengo cuenta, iniciar sesión", color = azulApp, fontSize = 18.sp)
             }
         }
     }
-
 }
