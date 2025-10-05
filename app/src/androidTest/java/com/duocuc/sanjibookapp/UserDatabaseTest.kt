@@ -6,6 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.duocuc.sanjibookapp.data.dao.UserDao
 import com.duocuc.sanjibookapp.data.database.AppDatabase
+import com.duocuc.sanjibookapp.models.Role
 import com.duocuc.sanjibookapp.models.User
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -28,9 +29,12 @@ class UserDatabaseTest {
             .allowMainThreadQueries()
             .build()
         userDao = db.userDao()
+        val roleDao = db.roleDao()
 
         // Insertamos usuario de prueba
         runBlocking {
+            roleDao.insert(Role(1, "Administrador"))
+            roleDao.insert(Role(3, "Usuario"))
             userDao.insert(
                 User(
                     0,
@@ -67,9 +71,9 @@ class UserDatabaseTest {
 
     @Test
     fun testUserExists() = runBlocking {
-        val user = userDao.getUserByEmail("test@demo.com")
+        val user = userDao.getUserByEmail("admin@demo.com")
         assertNotNull(user)
-        assertEquals("Test User", user?.nombre)
+        assertEquals("Admin", user?.nombre)
     }
 
     @Test

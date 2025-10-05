@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.ui.text)
     implementation(libs.androidx.foundation)
+    implementation(libs.androidx.junit.ktx)
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     // Navigation Compose
@@ -80,4 +81,34 @@ dependencies {
 
     // Para Flow y suspend
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+
+    // Room Testing
+    testImplementation("androidx.room:room-testing:2.6.1")
+
+    // AndroidX Test - Core y Runner
+    testImplementation("androidx.test:core:1.5.0")
+    testImplementation("androidx.test:runner:1.5.2")
+    testImplementation("androidx.test:rules:1.5.0")
+
+    // AndroidJUnit4 para tests instrumentados
+    testImplementation("androidx.test.ext:junit:1.1.5")
+
+    // Para tests que usan el contexto de Android
+    testImplementation("androidx.test.ext:junit-ktx:1.1.5")
+
+    // MockK para mocking en Kotlin
+    testImplementation("io.mockk:mockk:1.13.8")
+
+    // Coroutines Test
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+
+    // Architecture Components Testing
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
+
+    androidTestImplementation("androidx.test:core:1.5.0")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test:runner:1.5.2")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation("androidx.room:room-testing:2.6.1")
+    testImplementation(kotlin("test"))
 }
