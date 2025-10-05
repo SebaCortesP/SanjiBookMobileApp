@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("kotlin-kapt")
+
 }
 
 android {
@@ -34,13 +35,21 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
+        languageVersion = "2.0"
+        apiVersion = "2.0"
     }
     buildFeatures {
         compose = true
     }
+    kapt {
+        useBuildCache = true
+        correctErrorTypes = true
+    }
+
 }
 
 dependencies {
+    
     // Jetpack Compose (ya viene en tu proyecto si creaste "Empty Compose Activity")
     implementation(platform("androidx.compose:compose-bom:2025.01.00")) // Usa la BOM para manejar versiones
     implementation("androidx.navigation:navigation-ui:2.9.3")
@@ -75,6 +84,7 @@ dependencies {
     // Room
     implementation("androidx.room:room-runtime:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
+    kapt("org.jetbrains.kotlin:kotlin-annotation-processing-gradle:1.9.24")
 
     // Kotlin Extensions y Coroutines support para Room
     implementation("androidx.room:room-ktx:2.6.1")
@@ -110,5 +120,8 @@ dependencies {
     androidTestImplementation("androidx.test:runner:1.5.2")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation("androidx.room:room-testing:2.6.1")
+    androidTestImplementation( "androidx.navigation:navigation-testing:2.9.3")
     testImplementation(kotlin("test"))
+
+
 }
