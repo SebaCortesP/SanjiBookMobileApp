@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.duocuc.sanjibookapp.data.database.AppDatabase
+import com.duocuc.sanjibookapp.models.Session
 import com.duocuc.sanjibookapp.models.User
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -243,6 +244,10 @@ fun RegisterScreen(navController: NavController) {
                                     roleId = 3
                                 )
                                 db.userDao().insert(newUser)
+                                val userId = db.userDao().insert(newUser) // devuelve ID del usuario
+                                val userCreated = db.userDao().getUserById(userId.toInt())
+                                // Crear sesión activa
+                                Session.currentUser = userCreated
                                 showSuccessDialog = true
                             } else {
                                 generalError = "El usuario ya existe"
